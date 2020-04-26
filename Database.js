@@ -1,14 +1,41 @@
-const dataContainers = document.getElementsByClassName("col");
+"use strict"
+
+const dataContainers = document.getElementsByClassName("data-container");
 var cachedMovies = [];
 //the required prefix in order to get the poster for the movie from the API
 var posterURLPrefix = "https://image.tmdb.org/t/p/w500";
 const KEY_OPENED_MOVIE = "KEY_OPENED_MOVIE";
-
+let apiKey = "55398af9b60eda4997b848dd5ccf7d44";
+let apiURlNowPlaying = "https://api.themoviedb.org/3/movie/now_playing?api_key=" + apiKey + "&page=";
+let apiURlPopular = "https://api.themoviedb.org/3/movie/popular?api_key=" + apiKey;
+let apiURlTopRated = "https://api.themoviedb.org/3/movie/top_rated?api_key=" + apiKey;
 let currentPage = 0;
 //attach an listener to the load more button
-function addListenerToLoadMore() {
-    let loadMoreButton = document.getElementById("loadMoreButton");
-    loadMoreButton.addEventListener('click', fetchMoviesFromApi);
+
+$("#loadMoreButton").click(function () {
+    fetchMoreMovies();
+});
+
+function fetchMoreMovies() {
+    currentPage++;
+    let url = apiURlNowPlaying + currentPage;
+    fetchMoviesFromApi(url);
+}
+
+function loadCategory(categoryName, element) {
+    removeFetchedMovies();
+    $("a.category").css("background-color", "#F1F1F1");
+    element.style.background = "#4CAF50";
+    switch (categoryName) {
+        case "popular":
+            fetchMoviesFromApi(apiURlPopular);
+            break;
+        case "topRated":
+            fetchMoviesFromApi(apiURlTopRated);
+            break;
+        default:
+            fetchMoviesFromApi(apiURlNowPlaying + "1");
+    }
 }
 
 function autocomplete(suggestions) {
@@ -49,13 +76,13 @@ function autocomplete(suggestions) {
     }
 
 
-
     //close the list if the user presses somewhere else on the screen
     document.addEventListener("click", function (e) {
         closeAllLists(e.target);
     });
 
 }
+
 //call this method in order to hide all auto - suggestions
 function closeAllLists(elmnt) {
     let x = document.getElementsByClassName("autocomplete-items");
@@ -66,13 +93,19 @@ function closeAllLists(elmnt) {
     }
 }
 
+function removeFetchedMovies() {
+    currentPage = 0;
+    for (let i = 0; i < dataContainers.length; i++) {
+        dataContainers[i].innerHTML = "";
+    }
+}
+
 //get data from the movie api
-function fetchMoviesFromApi() {
-    currentPage++;
-    let apiURI = "https://api.themoviedb.org/3/movie/now_playing?api_key=55398af9b60eda4997b848dd5ccf7d44&page=" + currentPage;
-    fetch(apiURI)
+function fetchMoviesFromApi(url) {
+    fetch(url)
         .then((resp) => resp.json()) // Transform the data into json
         .then(function (data) {
+            console.log(data);
             insertFetchedData(data);
             startHeatmap();
         })
@@ -177,7 +210,7 @@ function displayCachedMovies() {
  * @param query
  */
 function fetchSuggestions(query) {
-    if(query.trim() !== "") {
+    if (query.trim() !== "") {
         let searchURL = "https://api.themoviedb.org/3/search/movie?api_key=55398af9b60eda4997b848dd5ccf7d44&query=" + query;
         searchURL.replace(" ", "+");
         let suggestions = [];
@@ -211,7 +244,7 @@ function performQuery(query) {
     if (query.trim() !== "") {
         searchField.value = "";
         let loadMoreButton = document.getElementById("loadMoreButton");
-        if(loadMoreButton) {
+        if (loadMoreButton) {
             loadMoreButton.style.visibility = 'hidden';
         }
         closeAllLists();
@@ -223,7 +256,7 @@ function performQuery(query) {
 }
 
 function removeAllDisplayedMovies() {
-    for (let i = 0; i < dataContainers.length ; i++) {
+    for (let i = 0; i < dataContainers.length; i++) {
         while (dataContainers[i].firstChild) {
             dataContainers[i].removeChild(dataContainers[i].firstChild);
         }
