@@ -1,4 +1,3 @@
-"use strict"
 
 const dataContainers = document.getElementsByClassName("data-container");
 var cachedMovies = [];
@@ -105,7 +104,6 @@ function fetchMoviesFromApi(url) {
     fetch(url)
         .then((resp) => resp.json()) // Transform the data into json
         .then(function (data) {
-            console.log(data);
             insertFetchedData(data);
             startHeatmap();
         })
@@ -235,12 +233,16 @@ function executeAPISearch(query) {
         });
 }
 
+
 /**
  * This function is used in order to perform
  * a movie search by executing an API query
  * @param query
  */
 function performQuery(query) {
+    heatmap.export();
+    saveSearchData();
+
     if (query.trim() !== "") {
         searchField.value = "";
         let loadMoreButton = document.getElementById("loadMoreButton");
