@@ -7,6 +7,7 @@ let apiKey = "55398af9b60eda4997b848dd5ccf7d44";
 let apiURlNowPlaying = "https://api.themoviedb.org/3/movie/now_playing?api_key=" + apiKey + "&page=";
 let apiURlPopular = "https://api.themoviedb.org/3/movie/popular?api_key=" + apiKey;
 let apiURlTopRated = "https://api.themoviedb.org/3/movie/top_rated?api_key=" + apiKey;
+let apiURlSearch = "https://api.themoviedb.org/3/search/movie?api_key=" + apiKey;
 let currentPage = 0;
 //attach an listener to the load more button
 
@@ -100,12 +101,15 @@ function removeFetchedMovies() {
 
 //get data from the movie api
 function fetchMoviesFromApi(url) {
-    fetch(url)
-        .then((resp) => resp.json()) // Transform the data into json
-        .then(function (data) {
-            insertFetchedData(data);
-            startHeatmap();
-        })
+    $.ajax(
+        {
+            url: url,
+            success: function (data) {
+                insertFetchedData(data);
+                startHeatmap();
+            }
+        }
+    )
 }
 
 /**
@@ -207,29 +211,35 @@ function displayCachedMovies() {
  * @param query
  */
 function fetchSuggestions(query) {
+    query.replace(" ", "+");
     if (query.trim() !== "") {
-        let searchURL = "https://api.themoviedb.org/3/search/movie?api_key=55398af9b60eda4997b848dd5ccf7d44&query=" + query;
-        searchURL.replace(" ", "+");
-        let suggestions = [];
-        fetch(searchURL)
-            .then((resp) => resp.json()) // Transform the data into json
-            .then(function (data) {
+        $.ajax({
+            url: apiURlSearch,
+            data: {
+                query: query
+            },
+            success: function (data) {
+                let suggestions = [];
                 for (let i = 0; i < data.results.length; i++) {
                     suggestions.push(data.results[i]["title"]);
                 }
                 autocomplete(suggestions);
-            });
+            }
+        });
     }
 }
 
 function executeAPISearch(query) {
-    let searchURL = "https://api.themoviedb.org/3/search/movie?api_key=55398af9b60eda4997b848dd5ccf7d44&query=" + query;
-    searchURL.replace(" ", "+");
-    fetch(searchURL)
-        .then((resp) => resp.json()) // Transform the data into json
-        .then(function (data) {
+    query.replace(" ", "+");
+    $.ajax({
+        url: apiURlSearch,
+        data: {
+            query: query
+        },
+        success: function (data) {
             insertFetchedData(data);
-        });
+        }
+    });
 }
 
 
@@ -243,8 +253,14 @@ function exportData() {
  * a movie search by executing an API query
  * @param query
  */
-function performQuery(query) {
+let exportDataOnQuerySubmit = false;
 
+
+function performQuery(query) {
+    finishedTime = new Date().getTime();
+    if (exportDataOnQuerySubmit === true) {
+        exportData();
+    }
     if (query.trim() !== "") {
         searchField.value = "";
         let loadMoreButton = document.getElementById("loadMoreButton");

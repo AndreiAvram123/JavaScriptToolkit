@@ -32,6 +32,7 @@ heatmap.init = () => {
     $canvas.style.opacity = "0";
     document.body.appendChild($canvas);
 
+
     heatmap.canvas = $canvas;
     heatmap.ctx = $canvas.getContext("2d");
     heatmap.width = $canvas.width;
@@ -59,10 +60,10 @@ heatmap.init = () => {
     heatmap.shapeSize = null;
 
     window.addEventListener("mousemove", e => {
-        heatmap.data.push([e.layerX, e.layerY, 1]);
+        heatmap.data.push([e.x, e.y, 1]);
         let point = {}
-        point.x = e.layerX;
-        point.y = e.layerY;
+        point.x = e.x;
+        point.y = e.y;
         recordedPoints.push(point);
         heatmap.frame = heatmap.frame || window.requestAnimationFrame(heatmap.drawFrame);
     });
@@ -94,13 +95,13 @@ heatmap.createShape = () => {
 heatmap.drawAreaLines = () => {
     let ctx = heatmap.ctx;
     ctx.beginPath();
-    ctx.moveTo(0, boundaries.topLeft.y + window.innerHeight/2);
-    ctx.lineTo(window.innerWidth, window.innerHeight/2);
+    ctx.moveTo(0, boundaries.topLeft.y + window.innerHeight / 2);
+    ctx.lineTo(window.innerWidth, window.innerHeight / 2);
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(window.innerWidth/3, 0);
-    ctx.lineTo(window.innerWidth / 3,window.innerHeight);
+    ctx.moveTo(window.innerWidth / 3, 0);
+    ctx.lineTo(window.innerWidth / 3, window.innerHeight);
     ctx.stroke();
 
     ctx.beginPath();
@@ -145,7 +146,7 @@ heatmap.draw = () => {
     const canvasImage = ctx.getImageData(0, 0, heatmap.width, heatmap.height);
     heatmap.colourise(canvasImage.data);
     heatmap.ctx.putImageData(canvasImage, 0, 0);
-    heatmap.drawAreaLines();
+   heatmap.drawAreaLines();
 };
 
 // Draws and resets the frame

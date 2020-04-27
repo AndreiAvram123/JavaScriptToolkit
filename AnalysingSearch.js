@@ -1,17 +1,19 @@
 /**
  * Author Andrei Avram
- * @type {HTMLElement}
+
  */
 const searchButton = document.getElementById('searchButton');
 const searchField = document.getElementById('searchField');
 const search_button_pressed_key = "SEARCH_BUTTON_PRESSED_KEY";
 const enter_pressed_key = "ENTER_PRESSED_VALUE";
 const queries_entered_key = "QUERIES_ENTERED_KEY";
-var searchButtonPressed = 0;
-var enterButtonPressed = 0;
-var queries = [];
-let time = new Date().getTime();
+let searchButtonPressed = 0;
+let enterButtonPressed = 0;
+let queries = [];
+let startedTime = new Date().getTime();
+let finishedTime = 0;
 let fileNameData = "taskData.json";
+
 
 //add an event listener for where the user clicks on the search button
 searchButton.addEventListener('click', () => {
@@ -26,6 +28,11 @@ function saveSearchData() {
     dataObject.searchButtonPressed = searchButtonPressed;
     dataObject.enterButtonPressed = enterButtonPressed;
     dataObject.averageAreaData = getAverageAreaData()
+    if (finishedTime === 0) {
+        dataObject.timeRequired = "Unknown";
+    } else {
+        dataObject.timeRequired = (new Date().getTime() - startedTime);
+    }
     saveData(dataObject, fileNameData);
 }
 
@@ -44,6 +51,7 @@ var saveData = (function () {
         window.URL.revokeObjectURL(url);
     };
 }());
+
 
 
 searchField.addEventListener('keyup', (event) => checkKey(event));
