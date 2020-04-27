@@ -67,6 +67,7 @@ heatmap.init = () => {
         heatmap.frame = heatmap.frame || window.requestAnimationFrame(heatmap.drawFrame);
     });
 
+
     heatmap.createGradient();
     heatmap.createShape();
 };
@@ -89,6 +90,27 @@ heatmap.createShape = () => {
     ctx.fill();
 };
 
+//draw lines to visually represent the 6 areas
+heatmap.drawAreaLines = () => {
+    let ctx = heatmap.ctx;
+    ctx.beginPath();
+    ctx.moveTo(0, boundaries.topLeft.y + window.innerHeight/2);
+    ctx.lineTo(window.innerWidth, window.innerHeight/2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(window.innerWidth/3, 0);
+    ctx.lineTo(window.innerWidth / 3,window.innerHeight);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo((window.innerWidth / 3) * 2, 0);
+    ctx.lineTo((window.innerWidth / 3) * 2, window.innerHeight);
+    ctx.stroke();
+
+
+}
+
 // Creates a 256x1 line of colour gradient
 heatmap.createGradient = () => {
     const canvas = document.createElement("canvas");
@@ -105,6 +127,8 @@ heatmap.createGradient = () => {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 1, 256);
     heatmap.gradient = ctx.getImageData(0, 0, 1, 256).data;
+
+
 };
 
 // Draws the heatmap to canvas
@@ -121,6 +145,7 @@ heatmap.draw = () => {
     const canvasImage = ctx.getImageData(0, 0, heatmap.width, heatmap.height);
     heatmap.colourise(canvasImage.data);
     heatmap.ctx.putImageData(canvasImage, 0, 0);
+    heatmap.drawAreaLines();
 };
 
 // Draws and resets the frame
@@ -158,20 +183,20 @@ function startHeatmap() {
     topLeft.x = 0;
     topLeft.y = 0;
     let topCenter = {}
-    topCenter.x = topLeft.x + document.body.clientWidth / 3;
+    topCenter.x = topLeft.x + window.innerWidth / 3;
     topCenter.y = 0;
     let topRight = {};
-    topRight.x = topCenter.x + document.body.clientWidth / 3;
+    topRight.x = topCenter.x + window.innerWidth / 3;
     topRight.y = 0;
     let bottomLeft = {};
     bottomLeft.x = 0;
-    bottomLeft.y = document.body.clientHeight / 2;
+    bottomLeft.y = window.innerHeight / 2;
     let bottomCenter = {};
-    bottomCenter.x = bottomLeft.x + document.body.clientWidth / 3
-    bottomCenter.y = document.body.clientHeight / 2;
+    bottomCenter.x = bottomLeft.x + window.innerWidth / 3
+    bottomCenter.y = window.innerHeight / 2;
     let bottomRight = {};
-    bottomRight.x = bottomCenter.x + document.body.clientWidth / 3;
-    bottomRight.y = document.body.clientHeight / 2;
+    bottomRight.x = bottomCenter.x + window.innerWidth / 3;
+    bottomRight.y = window.innerHeight / 2;
 
     boundaries.topLeft = topLeft;
     boundaries.topCenter = topCenter;

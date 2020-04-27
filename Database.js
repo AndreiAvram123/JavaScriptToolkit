@@ -1,4 +1,3 @@
-
 const dataContainers = document.getElementsByClassName("data-container");
 var cachedMovies = [];
 //the required prefix in order to get the poster for the movie from the API
@@ -234,14 +233,17 @@ function executeAPISearch(query) {
 }
 
 
+function exportData() {
+    heatmap.export();
+    saveSearchData();
+}
+
 /**
  * This function is used in order to perform
  * a movie search by executing an API query
  * @param query
  */
 function performQuery(query) {
-    heatmap.export();
-    saveSearchData();
 
     if (query.trim() !== "") {
         searchField.value = "";
