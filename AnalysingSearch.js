@@ -10,10 +10,12 @@ const queries_entered_key = "QUERIES_ENTERED_KEY";
 let searchButtonPressed = 0;
 let enterButtonPressed = 0;
 let queries = [];
-let startedTime = new Date().getTime();
+let queriesData = [];
+let startedTime;
 let finishedTime = 0;
 let fileNameData = "taskData.json";
-
+let searchSuggestionsOn = true
+let maxNumberSuggestions = 7;
 
 //add an event listener for where the user clicks on the search button
 searchButton.addEventListener('click', () => {
@@ -24,16 +26,16 @@ searchButton.addEventListener('click', () => {
 
 function saveSearchData() {
     let dataObject = {};
-    dataObject.queries = queries;
-    dataObject.searchButtonPressed = searchButtonPressed;
-    dataObject.enterButtonPressed = enterButtonPressed;
+    dataObject.queriesData = queriesData;
     dataObject.averageAreaData = getAverageAreaData()
+
     if (finishedTime === 0) {
         dataObject.timeRequired = "Unknown";
     } else {
         dataObject.timeRequired = (new Date().getTime() - startedTime);
     }
     saveData(dataObject, fileNameData);
+    heatmap.export();
 }
 
 
@@ -53,9 +55,28 @@ var saveData = (function () {
 }());
 
 
-
 searchField.addEventListener('keyup', (event) => checkKey(event));
 
+
+let shouldExportDataOnClick = false;
+
+function exportSearchDataOnClick() {
+    if (shouldExportDataOnClick === true) {
+        saveSearchData();
+    }
+}
+
+function startTimer() {
+    if (startedTime === undefined) {
+        startedTime = new Date().getTime();
+        let newQueryData = {};
+        newQueryData.startedTime = startedTime;
+        newQueryData.suggestionOn = searchSuggestionsOn;
+        newQueryData.maxNumberSuggestions = maxNumberSuggestions;
+        queriesData.push(newQueryData);
+
+    }
+}
 
 function recordSearchByButton() {
     searchButtonPressed++;

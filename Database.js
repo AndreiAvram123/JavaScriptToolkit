@@ -1,7 +1,6 @@
 const dataContainers = document.getElementsByClassName("data-container");
-var cachedMovies = [];
 //the required prefix in order to get the poster for the movie from the API
-var posterURLPrefix = "https://image.tmdb.org/t/p/w500";
+const posterURLPrefix = "https://image.tmdb.org/t/p/w500";
 const KEY_OPENED_MOVIE = "KEY_OPENED_MOVIE";
 let apiKey = "55398af9b60eda4997b848dd5ccf7d44";
 let apiURlNowPlaying = "https://api.themoviedb.org/3/movie/now_playing?api_key=" + apiKey + "&page=";
@@ -24,7 +23,10 @@ function fetchMoreMovies() {
 function loadCategory(categoryName, element) {
     removeFetchedMovies();
     $("a.category").css("background-color", "#F1F1F1");
-    element.style.background = "#4CAF50";
+
+    if (element !== undefined) {
+        element.style.background = "#4CAF50";
+    }
     switch (categoryName) {
         case "popular":
             fetchMoviesFromApi(apiURlPopular);
@@ -118,6 +120,7 @@ function fetchMoviesFromApi(url) {
  * @param movies
  */
 function insertDataInView(movies) {
+
     for (let i = 0; i < movies.length; i++) {
         //depending on the layout of the page, we may want to display multiple columns of movies
         let container = dataContainers[i % dataContainers.length];
@@ -138,7 +141,7 @@ function insertDataInView(movies) {
         let description = document.createElement("p");
         description.className = "movie-description";
         //make sure that the substring contains full words
-        description.innerText = refactorString(movies[i]["overview"].substring(0, 140));
+        description.innerText = movies[i]["overview"].substring(0, 140);
         card.append(description);
 
         let button = document.createElement("button");
@@ -182,28 +185,15 @@ function insertExtendedMovieIntoView() {
 }
 
 
-function refactorString(stringToCut) {
-    while (stringToCut[stringToCut.length - 1] !== ' ') {
-        stringToCut = stringToCut.substring(0, stringToCut.length - 1);
-    }
-    stringToCut += "...";
-    return stringToCut;
-}
-
 function insertFetchedData(data) {
     let movies = [];
     for (let i = 0; i < data.results.length; i++) {
         movies.push(data.results[i]);
         //make a cache of movies
-        cachedMovies.push(data.results[i]);
     }
     insertDataInView(movies);
 }
 
-function displayCachedMovies() {
-    removeAllDisplayedMovies();
-    insertDataInView(cachedMovies);
-}
 
 /**
  * This function fetches suggestions from the database regarding
@@ -211,35 +201,35 @@ function displayCachedMovies() {
  * @param query
  */
 function fetchSuggestions(query) {
-    query.replace(" ", "+");
-    if (query.trim() !== "") {
-        $.ajax({
-            url: apiURlSearch,
-            data: {
-                query: query
-            },
-            success: function (data) {
-                let suggestions = [];
-                for (let i = 0; i < data.results.length; i++) {
-                    suggestions.push(data.results[i]["title"]);
+    if (searchSuggestionsOn) {
+        query.replace(" ", "+");
+        if (query.trim() !== "") {
+            $.ajax({
+                url: apiURlSearch,
+                data: {
+                    query: query
+                },
+                success: function (data) {
+                    let suggestions = [];
+                    for (let i = 0; i < data.results.length; i++) {
+                        suggestions.push(data.results[i]["title"]);
+                    }
+                    autocomplete(suggestions);
                 }
-                autocomplete(suggestions);
-            }
-        });
+            });
+        }
     }
 }
 
-function executeAPISearch(query) {
+function executeAPISearchForMovie(query) {
     query.replace(" ", "+");
-    $.ajax({
-        url: apiURlSearch,
-        data: {
-            query: query
-        },
-        success: function (data) {
-            insertFetchedData(data);
-        }
-    });
+    let url = apiURlSearch + "&query=" + query;
+    fetch(url).then(response => {
+        return response.text();
+    }).then(data => {
+        console.log(data);
+        insertFetchedData(JSON.parse(data));
+    })
 }
 
 
@@ -253,14 +243,12 @@ function exportData() {
  * a movie search by executing an API query
  * @param query
  */
-let exportDataOnQuerySubmit = false;
-
 
 function performQuery(query) {
     finishedTime = new Date().getTime();
-    if (exportDataOnQuerySubmit === true) {
-        exportData();
-    }
+    queriesData[queriesData.length - 1].finishedTime = finishedTime;
+    queriesData[queriesData.length - 1].timeRequired = finishedTime - startedTime;
+    startedTime = undefined;
     if (query.trim() !== "") {
         searchField.value = "";
         let loadMoreButton = document.getElementById("loadMoreButton");
@@ -269,17 +257,13 @@ function performQuery(query) {
         }
         closeAllLists();
         removeAllDisplayedMovies();
-        executeAPISearch(query);
-    } else {
-        displayCachedMovies();
+        executeAPISearchForMovie(query);
     }
 }
 
 function removeAllDisplayedMovies() {
     for (let i = 0; i < dataContainers.length; i++) {
-        while (dataContainers[i].firstChild) {
-            dataContainers[i].removeChild(dataContainers[i].firstChild);
-        }
+        dataContainers[i].innerHTML = "";
     }
 
 }
