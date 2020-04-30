@@ -1,15 +1,5 @@
-/**
- * Author Andrei Avram
-
- */
 const searchButton = document.getElementById('searchButton');
 const searchField = document.getElementById('searchField');
-const search_button_pressed_key = "SEARCH_BUTTON_PRESSED_KEY";
-const enter_pressed_key = "ENTER_PRESSED_VALUE";
-const queries_entered_key = "QUERIES_ENTERED_KEY";
-let searchButtonPressed = 0;
-let enterButtonPressed = 0;
-let queries = [];
 let queriesData = [];
 let startedTime;
 let finishedTime = 0;
@@ -19,7 +9,7 @@ let maxNumberSuggestions = 7;
 
 //add an event listener for where the user clicks on the search button
 searchButton.addEventListener('click', () => {
-    recordSearchByButton();
+    queriesData[queriesData.length - 1].queryPerformedBy = "Search button"
     performQuery(searchField.value);
 });
 
@@ -28,23 +18,16 @@ function saveSearchData() {
     let dataObject = {};
     dataObject.queriesData = queriesData;
     dataObject.averageAreaData = getAverageAreaData()
-
-    if (finishedTime === 0) {
-        dataObject.timeRequired = "Unknown";
-    } else {
-        dataObject.timeRequired = (new Date().getTime() - startedTime);
-    }
-    saveData(dataObject, fileNameData);
-    heatmap.export();
+    exportDataFile(dataObject, fileNameData);
 }
 
 
-var saveData = (function () {
-    var a = document.createElement("a");
+var exportDataFile = (function () {
+    let a = document.createElement("a");
     document.body.appendChild(a);
     a.style = "display: none";
     return function (data, fileName) {
-        var json = JSON.stringify(data),
+        let json = JSON.stringify(data),
             blob = new Blob([json], {type: "octet/stream"}),
             url = window.URL.createObjectURL(blob);
         a.href = url;
@@ -55,67 +38,42 @@ var saveData = (function () {
 }());
 
 
-searchField.addEventListener('keyup', (event) => checkKey(event));
-
-
-let shouldExportDataOnClick = false;
-
-function exportSearchDataOnClick() {
-    if (shouldExportDataOnClick === true) {
-        saveSearchData();
-    }
-}
+searchField.onkeyup = (event) => checkKey(event);
 
 function startTimer() {
     if (startedTime === undefined) {
         startedTime = new Date().getTime();
         let newQueryData = {};
-        newQueryData.startedTime = startedTime;
         newQueryData.suggestionOn = searchSuggestionsOn;
         newQueryData.maxNumberSuggestions = maxNumberSuggestions;
+        newQueryData.currentQueryEntered = [];
+        newQueryData.currentQueryEntered.push("_start_");
         queriesData.push(newQueryData);
 
     }
 }
 
-function recordSearchByButton() {
-    searchButtonPressed++;
-    sessionStorage.setItem(search_button_pressed_key, searchButtonPressed.toString());
-    console.log("Search Button pressed " + searchButtonPressed);
-}
 
 function recordSearchByEnter() {
-    enterButtonPressed++;
-    sessionStorage.setItem(enter_pressed_key, enterButtonPressed.toString());
-    console.log("Enter pressed " + enterButtonPressed);
+    queriesData[queriesData.length - 1].queryPerformedBy = "Enter pressed"
 }
 
-//check which key the user has pressed
 function checkKey(event) {
+    function recordKeyData() {
+        queriesData[queriesData.length - 1].currentQueryEntered.push(searchField.value);
+    }
+
     if (event.key === 'Enter') {
         recordSearchByEnter();
         performQuery(searchField.value);
     } else {
-        recordEnteredQuery();
+        recordKeyData();
         fetchSuggestions(searchField.value);
     }
 
 }
 
-function recordEnteredQuery() {
-    if (searchField.value.trim() === "") {
-        //insert _ into the data to mark the delete of a query
-        queries.push("_")
-    } else {
-        queries.push(searchField.value);
-        sessionStorage.setItem(queries_entered_key, JSON.stringify(queries));
-    }
-    console.log("Queries  " + queries);
-}
-
 function recordSuggestionSelected(suggestion) {
-    queries.push("!!!" + suggestion + "!!!");
-    sessionStorage.setItem(queries_entered_key, JSON.stringify(queries));
-    console.log("Queries  " + queries);
+    queriesData[queriesData.length - 1].queryPerformedBy = "Search suggestion selected : " + suggestion;
 }
 

@@ -8,7 +8,7 @@ let apiURlPopular = "https://api.themoviedb.org/3/movie/popular?api_key=" + apiK
 let apiURlTopRated = "https://api.themoviedb.org/3/movie/top_rated?api_key=" + apiKey;
 let apiURlSearch = "https://api.themoviedb.org/3/search/movie?api_key=" + apiKey;
 let currentPage = 0;
-//attach an listener to the load more button
+
 
 $("#loadMoreButton").click(function () {
     fetchMoreMovies();
@@ -211,12 +211,14 @@ function fetchSuggestions(query) {
                 },
                 success: function (data) {
                     let suggestions = [];
-                    for (let i = 0; i < data.results.length; i++) {
+                    for (let i = 0; i < data.results.length && i <= maxNumberSuggestions; i++) {
                         suggestions.push(data.results[i]["title"]);
                     }
                     autocomplete(suggestions);
                 }
             });
+        } else {
+            closeAllLists()
         }
     }
 }
@@ -227,7 +229,6 @@ function executeAPISearchForMovie(query) {
     fetch(url).then(response => {
         return response.text();
     }).then(data => {
-        console.log(data);
         insertFetchedData(JSON.parse(data));
     })
 }
@@ -238,6 +239,26 @@ function exportData() {
     saveSearchData();
 }
 
+
+function pushDataToServer(dataObject) {
+    let formData = new FormData();
+    formData.append("timeRequired", dataObject.timeRequired);
+    formData.append("textTyped", dataObject.currentQueryEntered);
+    formData.append("suggestionsOn", searchSuggestionsOn);
+    formData.append("queryPerformedBy", dataObject.queryPerformedBy);
+    formData.append("maxNumberSuggestions", dataObject.maxNumberSuggestions);
+
+    fetch("Collector.php?requestName=addData", {
+        method: 'POST',
+        body: formData,
+    }).then(function (response) {
+        return response.text();
+    }).then(data => {
+        console.log(data);
+    });
+}
+
+
 /**
  * This function is used in order to perform
  * a movie search by executing an API query
@@ -245,10 +266,16 @@ function exportData() {
  */
 
 function performQuery(query) {
-    finishedTime = new Date().getTime();
-    queriesData[queriesData.length - 1].finishedTime = finishedTime;
-    queriesData[queriesData.length - 1].timeRequired = finishedTime - startedTime;
-    startedTime = undefined;
+    function addQueryData() {
+        finishedTime = new Date().getTime();
+        let currentQueryData = queriesData[queriesData.length - 1];
+        currentQueryData.timeRequired = finishedTime - startedTime;
+        currentQueryData.currentQueryEntered.push("!!!!" + query + "!!!!!");
+        startedTime = undefined;
+        pushDataToServer(currentQueryData);
+    }
+
+    addQueryData();
     if (query.trim() !== "") {
         searchField.value = "";
         let loadMoreButton = document.getElementById("loadMoreButton");

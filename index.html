@@ -25,26 +25,66 @@
             </div>
         </div>
 
-<!--        <form class="form-inline my-2 my-lg-0">-->
-<!--            <input class="form-control my-0 py-1 lime-border" id="searchField" type="text" placeholder="Search"-->
-<!--                   onclick="exportSearchDataOnClick()"-->
-<!--                   autocomplete="off"-->
-<!--                   aria-label="Search">-->
-<!--            <button class="btn btn-outline-success my-2 my-sm-0" type="submit" id="searchButton">Search</button>-->
-<!--        </form>-->
+        <!--        <form class="form-inline my-2 my-lg-0">-->
+        <!--            <input class="form-control my-0 py-1 lime-border" id="searchField" type="text" placeholder="Search"-->
+        <!--                 -->
+        <!--                   autocomplete="off"-->
+        <!--                   aria-label="Search">-->
+        <!--            <button class="btn btn-outline-success my-2 my-sm-0" type="submit" id="searchButton">Search</button>-->
+        <!--        </form>-->
     </nav>
 </header>
 
 
 <div class="container-fluid">
-            <div class="input-group md-form form-sm form-2 pl-0 search-box mt-3">
-                <input class="form-control my-0 py-1 lime-border" onclick="exportSearchDataOnClick();startTimer()" id="searchField" type="text" placeholder="Search"
-                       autocomplete="off"
-                       aria-label="Search">
-                <div class="input-group-append">
-                    <button class="btn btn-outline-success my-2 my-sm-0" id="searchButton" type="submit">Search</button>
+    <div class="input-group md-form form-sm form-2 pl-0 search-box mt-3">
+        <input class="form-control my-0 py-1 lime-border" onclick="startTimer()" id="searchField" type="text"
+               placeholder="Search"
+               autocomplete="off"
+               aria-label="Search">
+        <div class="input-group-append">
+            <button class="input-group-text lime lighten-2" id="searchButton"><i class="fa fa-search text-grey"
+                                                                                 aria-hidden="true"></i></button>
+        </div>
+        <button type="button" class="btn btn-success ml-4" data-toggle="modal" data-target="#filtersModal">Filters
+        </button>
+        <!-- Modal used in order to filter results-->
+        <div class="modal fade" id="filtersModal" tabindex="-1" role="dialog" aria-labelledby="filtersModal"
+             aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="filtersModalLabel">Filters</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group form-check">
+                            <input type="checkbox" class="form-check-input" id="showImagesCheckbox"
+                                   onchange="searchSuggestionsOn = !this.checked">
+                            <label class="form-check-label" for="showImagesCheckbox">Suggestions off</label>
+                        </div>
+                        <div class="form-group row mt-2">
+                            <label for="postMaxResults" class="col-sm-2 col-form-label">Max results</label>
+                            <div>
+                                <select class="form-control" name="postMaxResults" id="postMaxResults"
+                                        onchange="maxNumberSuggestions = parseInt(this.value)">
+                                    <option>7</option>
+                                    <option>15</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Apply</button>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
 
 
     <div class="row mt-4">
