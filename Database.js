@@ -248,14 +248,14 @@ function pushAreaDataToServer() {
     formData.append("bottomL", areaData.bottomLeft);
     formData.append("bottomC", areaData.bottomCenter);
     formData.append("bottomR", areaData.bottomRight);
-    formData.append("imageData", heatmap.export());
+    formData.append("imageData", heatmap.getCanvasData());
     fetch("Collector.php?requestName=AddAreaData", {
         method: 'POST',
         body: formData,
     }).then(function (response) {
         return response.text();
     }).then(data => {
-       console.log("the data has been successfully exported :)")
+        console.log("the data has been successfully exported :)")
     });
 }
 
@@ -264,7 +264,7 @@ function pushDataToServer(dataObject) {
     let formData = new FormData();
     formData.append("timeRequired", dataObject.timeRequired);
     formData.append("textTyped", dataObject.currentQueryEntered);
-    formData.append("suggestionsOn", searchSuggestionsOn);
+    formData.append("suggestionsOn", searchSuggestionsOn + "");
     formData.append("queryPerformedBy", dataObject.queryPerformedBy);
     formData.append("maxNumberSuggestions", dataObject.maxNumberSuggestions);
 

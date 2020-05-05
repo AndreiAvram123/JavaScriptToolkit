@@ -171,15 +171,17 @@ heatmap.colourise = pixels => {
 };
 
 
+heatmap.getCanvasData = () => {
+    return heatmap.canvas.toDataURL("image/jpg").split(",")[1];
+}
+
 // Export the heatmap
 heatmap.export = () => {
-    return heatmap.canvas.toDataURL("image/jpg").split(",")[1];
-
-//   const w = window.open("about:blank", "image from canvas");
-// w.document.write("<img src='" + img + "' alt='from canvas'/>");
-//w.document.close();
+    const img = heatmap.canvas.toDataURL("image/jpg");
+    const w = window.open("about:blank", "image from canvas");
+    w.document.write("<img src='" + img + "' alt='from canvas'/>");
+    w.document.close();
 }
-;
 
 function startHeatmap() {
     heatmap.init();
