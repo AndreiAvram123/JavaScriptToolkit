@@ -1,14 +1,42 @@
-const dataContainers = document.getElementsByClassName("col");
-var cachedMovies = [];
+const dataContainers = document.getElementsByClassName("data-container");
 //the required prefix in order to get the poster for the movie from the API
-var posterURLPrefix = "https://image.tmdb.org/t/p/w500";
+const posterURLPrefix = "https://image.tmdb.org/t/p/w500";
 const KEY_OPENED_MOVIE = "KEY_OPENED_MOVIE";
-
+let apiKey = "55398af9b60eda4997b848dd5ccf7d44";
+let apiURlNowPlaying = "https://api.themoviedb.org/3/movie/now_playing?api_key=" + apiKey + "&page=";
+let apiURlPopular = "https://api.themoviedb.org/3/movie/popular?api_key=" + apiKey;
+let apiURlTopRated = "https://api.themoviedb.org/3/movie/top_rated?api_key=" + apiKey;
+let apiURlSearch = "https://api.themoviedb.org/3/search/movie?api_key=" + apiKey;
 let currentPage = 0;
-//attach an listener to the load more button
-function addListenerToLoadMore() {
-    let loadMoreButton = document.getElementById("loadMoreButton");
-    loadMoreButton.addEventListener('click', fetchMoviesFromApi);
+
+
+$("#loadMoreButton").click(function () {
+    fetchMoreMovies();
+});
+
+function fetchMoreMovies() {
+    currentPage++;
+    let url = apiURlNowPlaying + currentPage;
+    fetchMoviesFromApi(url);
+}
+
+function loadCategory(categoryName, element) {
+    removeFetchedMovies();
+    $("a.category").css("background-color", "#F1F1F1");
+
+    if (element !== undefined) {
+        element.style.background = "#4CAF50";
+    }
+    switch (categoryName) {
+        case "popular":
+            fetchMoviesFromApi(apiURlPopular);
+            break;
+        case "topRated":
+            fetchMoviesFromApi(apiURlTopRated);
+            break;
+        default:
+            fetchMoviesFromApi(apiURlNowPlaying + "1");
+    }
 }
 
 function autocomplete(suggestions) {
@@ -49,13 +77,13 @@ function autocomplete(suggestions) {
     }
 
 
-
     //close the list if the user presses somewhere else on the screen
     document.addEventListener("click", function (e) {
         closeAllLists(e.target);
     });
 
 }
+
 //call this method in order to hide all auto - suggestions
 function closeAllLists(elmnt) {
     let x = document.getElementsByClassName("autocomplete-items");
@@ -66,16 +94,24 @@ function closeAllLists(elmnt) {
     }
 }
 
+function removeFetchedMovies() {
+    currentPage = 0;
+    for (let i = 0; i < dataContainers.length; i++) {
+        dataContainers[i].innerHTML = "";
+    }
+}
+
 //get data from the movie api
-function fetchMoviesFromApi() {
-    currentPage++;
-    let apiURI = "https://api.themoviedb.org/3/movie/now_playing?api_key=55398af9b60eda4997b848dd5ccf7d44&page=" + currentPage;
-    fetch(apiURI)
-        .then((resp) => resp.json()) // Transform the data into json
-        .then(function (data) {
-            insertFetchedData(data);
-            startHeatmap();
-        })
+function fetchMoviesFromApi(url) {
+    $.ajax(
+        {
+            url: url,
+            success: function (data) {
+                insertFetchedData(data);
+                startHeatmap();
+            }
+        }
+    )
 }
 
 /**
@@ -84,6 +120,7 @@ function fetchMoviesFromApi() {
  * @param movies
  */
 function insertDataInView(movies) {
+
     for (let i = 0; i < movies.length; i++) {
         //depending on the layout of the page, we may want to display multiple columns of movies
         let container = dataContainers[i % dataContainers.length];
@@ -104,7 +141,7 @@ function insertDataInView(movies) {
         let description = document.createElement("p");
         description.className = "movie-description";
         //make sure that the substring contains full words
-        description.innerText = refactorString(movies[i]["overview"].substring(0, 140));
+        description.innerText = movies[i]["overview"].substring(0, 140);
         card.append(description);
 
         let button = document.createElement("button");
@@ -148,28 +185,15 @@ function insertExtendedMovieIntoView() {
 }
 
 
-function refactorString(stringToCut) {
-    while (stringToCut[stringToCut.length - 1] !== ' ') {
-        stringToCut = stringToCut.substring(0, stringToCut.length - 1);
-    }
-    stringToCut += "...";
-    return stringToCut;
-}
-
 function insertFetchedData(data) {
     let movies = [];
     for (let i = 0; i < data.results.length; i++) {
         movies.push(data.results[i]);
         //make a cache of movies
-        cachedMovies.push(data.results[i]);
     }
     insertDataInView(movies);
 }
 
-function displayCachedMovies() {
-    removeAllDisplayedMovies();
-    insertDataInView(cachedMovies);
-}
 
 /**
  * This function fetches suggestions from the database regarding
@@ -177,56 +201,116 @@ function displayCachedMovies() {
  * @param query
  */
 function fetchSuggestions(query) {
-    if(query.trim() !== "") {
-        let searchURL = "https://api.themoviedb.org/3/search/movie?api_key=55398af9b60eda4997b848dd5ccf7d44&query=" + query;
-        searchURL.replace(" ", "+");
-        let suggestions = [];
-        fetch(searchURL)
-            .then((resp) => resp.json()) // Transform the data into json
-            .then(function (data) {
-                for (let i = 0; i < data.results.length; i++) {
-                    suggestions.push(data.results[i]["title"]);
+    if (searchSuggestionsOn) {
+        query.replace(" ", "+");
+        if (query.trim() !== "") {
+            $.ajax({
+                url: apiURlSearch,
+                data: {
+                    query: query
+                },
+                success: function (data) {
+                    let suggestions = [];
+                    for (let i = 0; i < data.results.length && i <= maxNumberSuggestions; i++) {
+                        suggestions.push(data.results[i]["title"]);
+                    }
+                    autocomplete(suggestions);
                 }
-                autocomplete(suggestions);
             });
+        } else {
+            closeAllLists()
+        }
     }
 }
 
-function executeAPISearch(query) {
-    let searchURL = "https://api.themoviedb.org/3/search/movie?api_key=55398af9b60eda4997b848dd5ccf7d44&query=" + query;
-    searchURL.replace(" ", "+");
-    fetch(searchURL)
-        .then((resp) => resp.json()) // Transform the data into json
-        .then(function (data) {
-            insertFetchedData(data);
-        });
+function executeAPISearchForMovie(query) {
+    query.replace(" ", "+");
+    let url = apiURlSearch + "&query=" + query;
+    fetch(url).then(response => {
+        return response.text();
+    }).then(data => {
+        insertFetchedData(JSON.parse(data));
+    })
 }
+
+
+function exportData() {
+    pushAreaDataToServer();
+}
+
+function pushAreaDataToServer() {
+    console.log("Exporting data... It may take time on a slow connection")
+    let formData = new FormData();
+    let areaData = getAverageAreaData();
+    formData.append("topL", areaData.topLeft);
+    formData.append("topC", areaData.topCenter);
+    formData.append("topR", areaData.topRight);
+    formData.append("bottomL", areaData.bottomLeft);
+    formData.append("bottomC", areaData.bottomCenter);
+    formData.append("bottomR", areaData.bottomRight);
+    formData.append("imageData", heatmap.export());
+    fetch("Collector.php?requestName=AddAreaData", {
+        method: 'POST',
+        body: formData,
+    }).then(function (response) {
+        return response.text();
+    }).then(data => {
+       console.log("the data has been successfully exported :)")
+    });
+}
+
+
+function pushDataToServer(dataObject) {
+    let formData = new FormData();
+    formData.append("timeRequired", dataObject.timeRequired);
+    formData.append("textTyped", dataObject.currentQueryEntered);
+    formData.append("suggestionsOn", searchSuggestionsOn);
+    formData.append("queryPerformedBy", dataObject.queryPerformedBy);
+    formData.append("maxNumberSuggestions", dataObject.maxNumberSuggestions);
+
+    fetch("Collector.php?requestName=addData", {
+        method: 'POST',
+        body: formData,
+    }).then(function (response) {
+        return response.text();
+    }).then(data => {
+        console.log(data);
+    });
+}
+
 
 /**
  * This function is used in order to perform
  * a movie search by executing an API query
  * @param query
  */
+
 function performQuery(query) {
+    function addQueryData() {
+        finishedTime = new Date().getTime();
+        let currentQueryData = queriesData[queriesData.length - 1];
+        currentQueryData.timeRequired = finishedTime - startedTime;
+        currentQueryData.currentQueryEntered.push("!!!!" + query + "!!!!!");
+        startedTime = undefined;
+        pushDataToServer(currentQueryData);
+    }
+
+    addQueryData();
     if (query.trim() !== "") {
         searchField.value = "";
         let loadMoreButton = document.getElementById("loadMoreButton");
-        if(loadMoreButton) {
+        if (loadMoreButton) {
             loadMoreButton.style.visibility = 'hidden';
         }
         closeAllLists();
         removeAllDisplayedMovies();
-        executeAPISearch(query);
-    } else {
-        displayCachedMovies();
+        executeAPISearchForMovie(query);
     }
 }
 
 function removeAllDisplayedMovies() {
-    for (let i = 0; i < dataContainers.length ; i++) {
-        while (dataContainers[i].firstChild) {
-            dataContainers[i].removeChild(dataContainers[i].firstChild);
-        }
+    for (let i = 0; i < dataContainers.length; i++) {
+        dataContainers[i].innerHTML = "";
     }
 
 }

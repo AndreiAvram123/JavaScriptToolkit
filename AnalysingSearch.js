@@ -1,63 +1,81 @@
-
-/**
- * Author Andrei Avram
- * @type {HTMLElement}
- */
 const searchButton = document.getElementById('searchButton');
 const searchField = document.getElementById('searchField');
-
-const search_button_pressed_key = "SEARCH_BUTTON_PRESSED_KEY";
-const enter_pressed_key = "ENTER_PRESSED_VALUE";
-const queries_entered_key = "QUERIES_ENTERED_KEY";
-var searchButtonPressed = 0;
-var enterButtonPressed = 0;
-var queries = [];
+let queriesData = [];
+let startedTime;
+let finishedTime = 0;
+let fileNameData = "taskData.json";
+let searchSuggestionsOn = true
+let maxNumberSuggestions = 7;
 
 //add an event listener for where the user clicks on the search button
 searchButton.addEventListener('click', () => {
-    recordSearchByButton();
+    queriesData[queriesData.length - 1].queryPerformedBy = "Search button"
     performQuery(searchField.value);
 });
 
-searchField.addEventListener('keyup', (event) => checkKey(event));
+
+// function saveSearchData() {
+//     // let dataObject = {};
+//     // dataObject.queriesData = queriesData;
+//     // dataObject.averageAreaData = getAverageAreaData()
+//     //
+//
+//
+//    // exportDataFile(dataObject, fileNameData);
+// }
+
+//
+// var exportDataFile = (function () {
+//     let a = document.createElement("a");
+//     document.body.appendChild(a);
+//     a.style = "display: none";
+//     return function (data, fileName) {
+//         let json = JSON.stringify(data),
+//             blob = new Blob([json], {type: "octet/stream"}),
+//             url = window.URL.createObjectURL(blob);
+//         a.href = url;
+//         a.download = fileName;
+//         a.click();
+//         window.URL.revokeObjectURL(url);
+//     };
+// }());
 
 
-function recordSearchByButton() {
-    searchButtonPressed++;
-    sessionStorage.setItem(search_button_pressed_key, searchButtonPressed.toString());
-    console.log("Search Button pressed " + searchButtonPressed);
+searchField.onkeyup = (event) => checkKey(event);
+
+function startTimer() {
+    if (startedTime === undefined) {
+        startedTime = new Date().getTime();
+        let newQueryData = {};
+        newQueryData.suggestionOn = searchSuggestionsOn;
+        newQueryData.maxNumberSuggestions = maxNumberSuggestions;
+        newQueryData.currentQueryEntered = [];
+        newQueryData.currentQueryEntered.push("_start_");
+        queriesData.push(newQueryData);
+
+    }
 }
+
+
 function recordSearchByEnter() {
-    enterButtonPressed++;
-    sessionStorage.setItem(enter_pressed_key, enterButtonPressed.toString());
-    console.log("Enter pressed " + enterButtonPressed);
+    queriesData[queriesData.length - 1].queryPerformedBy = "Enter pressed"
 }
 
-//check which key the user has pressed
 function checkKey(event) {
+    function recordKeyData() {
+        queriesData[queriesData.length - 1].currentQueryEntered.push(searchField.value);
+    }
     if (event.key === 'Enter') {
         recordSearchByEnter();
         performQuery(searchField.value);
     } else {
-        recordEnteredQuery();
+        recordKeyData();
         fetchSuggestions(searchField.value);
     }
 
 }
 
-function recordEnteredQuery() {
-    if (searchField.value.trim() === "") {
-        //insert _ into the data to mark the delete of a query
-        queries.push("_")
-    } else {
-        queries.push(searchField.value);
-        sessionStorage.setItem(queries_entered_key, JSON.stringify(queries));
-    }
-    console.log("Queries  " + queries);
-}
-function recordSuggestionSelected(suggestion){
-    queries.push("!!!" + suggestion + "!!!");
-    sessionStorage.setItem(queries_entered_key, JSON.stringify(queries));
-    console.log("Queries  " + queries);
+function recordSuggestionSelected(suggestion) {
+    queriesData[queriesData.length - 1].queryPerformedBy = "Search suggestion selected : " + suggestion;
 }
 
