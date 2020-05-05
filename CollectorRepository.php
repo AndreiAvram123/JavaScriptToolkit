@@ -27,4 +27,11 @@ class CollectorRepository
         $result->execute();
     }
 
+    public function addAreaData($topL, $topC, $topR, $bottomL, $bottomC, $bottomR,$ip)
+    {
+        $query = "INSERT INTO sgb967_data_collector.area_data VALUES (NULL,'$topL','$topC','$topR','$bottomL','$bottomC','$bottomR','$ip')";
+        $result = $this->dbHandle->prepare($query);
+        $result->execute();
+    }
+
 }

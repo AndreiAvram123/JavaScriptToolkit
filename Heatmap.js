@@ -146,12 +146,14 @@ heatmap.draw = () => {
     const canvasImage = ctx.getImageData(0, 0, heatmap.width, heatmap.height);
     heatmap.colourise(canvasImage.data);
     heatmap.ctx.putImageData(canvasImage, 0, 0);
-   heatmap.drawAreaLines();
+    heatmap.drawAreaLines();
+
 };
 
 // Draws and resets the frame
 heatmap.drawFrame = () => {
     heatmap.draw();
+
     heatmap.frame = null;
 };
 
@@ -171,11 +173,13 @@ heatmap.colourise = pixels => {
 
 // Export the heatmap
 heatmap.export = () => {
-    const img = heatmap.canvas.toDataURL("image/png");
-    const w = window.open("about:blank", "image from canvas");
-    w.document.write("<img src='" + img + "' alt='from canvas'/>");
-    w.document.close();
-};
+    return heatmap.canvas.toDataURL("image/jpg").split(",")[1];
+
+//   const w = window.open("about:blank", "image from canvas");
+// w.document.write("<img src='" + img + "' alt='from canvas'/>");
+//w.document.close();
+}
+;
 
 function startHeatmap() {
     heatmap.init();
@@ -225,10 +229,10 @@ function getAverageAreaData() {
             }
         })
         if (numberOfElementsInArea > 0) {
-            let roundedNumber = Math.round((100 * numberOfElementsInArea) / recordedPoints.length);
+            let roundedNumber = Math.round((100 * numberOfElementsInArea) / recordedPoints.length) + "";
             return roundedNumber;
         } else {
-            return 0;
+            return 0 + "";
         }
     }
 

@@ -235,8 +235,28 @@ function executeAPISearchForMovie(query) {
 
 
 function exportData() {
-    heatmap.export();
-    saveSearchData();
+    pushAreaDataToServer();
+}
+
+function pushAreaDataToServer() {
+    console.log("Exporting data... It may take time on a slow connection")
+    let formData = new FormData();
+    let areaData = getAverageAreaData();
+    formData.append("topL", areaData.topLeft);
+    formData.append("topC", areaData.topCenter);
+    formData.append("topR", areaData.topRight);
+    formData.append("bottomL", areaData.bottomLeft);
+    formData.append("bottomC", areaData.bottomCenter);
+    formData.append("bottomR", areaData.bottomRight);
+    formData.append("imageData", heatmap.export());
+    fetch("Collector.php?requestName=AddAreaData", {
+        method: 'POST',
+        body: formData,
+    }).then(function (response) {
+        return response.text();
+    }).then(data => {
+       console.log("the data has been successfully exported :)")
+    });
 }
 
 
